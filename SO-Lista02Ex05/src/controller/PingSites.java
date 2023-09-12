@@ -1,12 +1,9 @@
 package controller;
 
-import java.awt.HeadlessException;
+
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-
-import javax.swing.JOptionPane;
 
 public class PingSites extends Thread{
 
@@ -20,7 +17,7 @@ public class PingSites extends Thread{
 	@Override
 	public void run() {
 		String nomeOs = System.getProperty("os.name");
-		String url, nomeSite;
+		String url = "", nomeSite = "";
 		
 		if(nomeOs.contains("Linux")){
 			
@@ -41,36 +38,41 @@ public class PingSites extends Thread{
 					break;
 			}
 			
-			try {	//TODO : Parte imcompleta 
+			try { 
 				//Receber a saída do processo e alocar em um buffer para leitura
-				Process processo = Runtime.getRuntime().exec("ping -4 -n 10 " + url);
+				Process processo = Runtime.getRuntime().exec("ping -4 -c 10 " + url);
 				InputStream fluxoDados = processo.getInputStream();
 				InputStreamReader leitor = new InputStreamReader(fluxoDados);
 				BufferedReader buffer = new BufferedReader(leitor);
 				String linha = buffer.readLine();
 				
-				StringBuffer saidaBuffer = new StringBuffer();
-				
 				while (linha != null) {
 					
-					if(linha.contains(indicadorMedia)) {
+					if(linha.contains("time=")) {
 						
-						String[] splitLinha = linha.split(separadorMedia);
-						int tempo = (int) Double.parseDouble(splitLinha[numSplitMedia]);
-						saidaBuffer.append("Tempo médio:" + tempo + fimTexto);
+						String[] splitLinha = linha.split("time=");
+						String tempo = splitLinha[1];
+						System.out.println(nomeSite + ": " + tempo);
+						
+					}else if (linha.contains("avg")) {
+						
+						String[] splitLinha = linha.split("/");
+						String tempo = splitLinha[4];
+						System.out.println(nomeSite + " - Tempo médio: " + tempo);
 						
 					}
 					
 					linha = buffer.readLine();
 				}
 				
+				
+				
 				//Fechamento dos buffers
 				buffer.close();
 				leitor.close();
 				fluxoDados.close();
 				
-				JOptionPane.showMessageDialog(null, saidaBuffer.toString());
-			} catch (HeadlessException e) {
+			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
